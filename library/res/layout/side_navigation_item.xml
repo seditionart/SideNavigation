@@ -13,7 +13,7 @@
         android:layout_width="@dimen/side_navigation_item_image_width"
         android:layout_height="@dimen/side_navigation_item_image_height"
         android:padding="@dimen/side_navigation_item_image_padding"
-        android:scaleType="fitCenter" />
+        android:scaleType="center" />
 
     <TextView
         android:id="@+id/side_navigation_item_text"

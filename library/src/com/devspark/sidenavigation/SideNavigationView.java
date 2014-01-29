@@ -6,6 +6,8 @@ import org.xmlpull.v1.XmlPullParser;
 
 import android.content.Context;
 import android.content.res.XmlResourceParser;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,6 +38,8 @@ public class SideNavigationView extends LinearLayout {
     private ISideNavigationCallback callback;
     private ArrayList<SideNavigationItem> menuItems;
     private Mode mMode = Mode.LEFT;
+    
+    private Typeface itemTypeface;
 
     public static enum Mode {
         LEFT, RIGHT
@@ -103,10 +107,16 @@ public class SideNavigationView extends LinearLayout {
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (callback != null) {
-                    callback.onSideNavigationItemClick(menuItems.get(position).getId());
-                }
-                hideMenu();
+            	SideNavigationItem item = (SideNavigationItem)parent.getAdapter().getItem(position);
+            	if (item.isToggle()) {
+            		item.setOpened(!item.isOpened());
+            		((BaseAdapter)parent.getAdapter()).notifyDataSetChanged();
+            	} else {
+                    if (callback != null) {                	
+                        callback.onSideNavigationItemClick(item.getId());
+                    }
+                    hideMenu();
+            	}
             }
         });
     }
@@ -156,6 +166,10 @@ public class SideNavigationView extends LinearLayout {
      */
     public Mode getMode() {
         return mMode;
+    }
+    
+    public void setItemTypeface(Typeface typeface) {
+    	itemTypeface = typeface;
     }
 
     /**
@@ -253,6 +267,15 @@ public class SideNavigationView extends LinearLayout {
                         String resId = xrp.getAttributeValue(
                                 "http://schemas.android.com/apk/res/android",
                                 "id");
+                        String backgroundColor = xrp.getAttributeValue(
+                                "http://www.seditionart.com/apk/res/android",
+                                "backgroundColor");
+                        String iconBackgroundColor = xrp.getAttributeValue(
+                                "http://www.seditionart.com/apk/res/android",
+                                "iconBackgroundColor");
+                        String toggle = xrp.getAttributeValue(
+                                "http://www.seditionart.com/apk/res/android",
+                                "toggle");
                         SideNavigationItem item = new SideNavigationItem();
                         item.setId(Integer.valueOf(resId.replace("@", "")));
                         item.setText(resourceIdToString(textId));
@@ -262,6 +285,15 @@ public class SideNavigationView extends LinearLayout {
                             } catch (NumberFormatException e) {
                                 Log.d(LOG_TAG, "Item " + item.getId() + " not have icon");
                             }
+                        }
+                        if (backgroundColor != null) {
+                        	item.setBackgroundColor(Color.parseColor(backgroundColor));
+                        }
+                        if (iconBackgroundColor != null) {
+                        	item.setIconBackgroundColor(Color.parseColor(iconBackgroundColor));
+                        }
+                        if (toggle != null) {
+                        	item.setToggle(Boolean.valueOf(toggle).booleanValue());
                         }
                         menuItems.add(item);
                     }
@@ -297,12 +329,52 @@ public class SideNavigationView extends LinearLayout {
 
         @Override
         public int getCount() {
-            return menuItems.size();
+        	int count = 0;
+        	boolean opened = false;
+        	for (SideNavigationItem item: menuItems) {
+        		if (item.getIcon() == SideNavigationItem.DEFAULT_ICON_VALUE) {
+        			if (opened) {
+        				count += 1;
+        			}
+        		} else {
+        			count += 1;
+            		if (item.isToggle()) {
+            			opened = item.isOpened();
+            		}
+        		}
+        	}
+            return count;
         }
 
         @Override
         public Object getItem(int position) {
-            return null;
+            SideNavigationItem item = null;
+            boolean opened = false;
+            for (SideNavigationItem i: menuItems) {
+            	if (position == 0) {
+            		if (i.getIcon() == SideNavigationItem.DEFAULT_ICON_VALUE) {
+            			if (opened) {
+            				item = i;
+            				break;
+            			}
+            		} else {
+            			item = i;
+            			break;
+            		}
+            	} else {
+            		if (i.getIcon() == SideNavigationItem.DEFAULT_ICON_VALUE) {
+            			if (opened) {
+            				position -= 1;
+            			}
+            		} else {
+            			position -= 1;
+                		if (i.isToggle()) {
+                			opened = i.isOpened();
+                		}
+            		}
+            	}
+            }
+            return item;
         }
 
         @Override
@@ -317,19 +389,24 @@ public class SideNavigationView extends LinearLayout {
                 convertView = inflater.inflate(R.layout.side_navigation_item, null);
                 holder = new ViewHolder();
                 holder.text = (TextView) convertView.findViewById(R.id.side_navigation_item_text);
+                if (itemTypeface != null) {
+                	holder.text.setTypeface(itemTypeface);
+                }
                 holder.icon = (ImageView) convertView.findViewById(R.id.side_navigation_item_icon);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
 
-            SideNavigationItem item = menuItems.get(position);
-            holder.text.setText(menuItems.get(position).getText());
+            SideNavigationItem item = (SideNavigationItem)getItem(position);
+            holder.text.setText(item.getText().toUpperCase(getContext().getResources().getConfiguration().locale));
+            convertView.setBackgroundColor(item.getBackgroundColor());
+            holder.icon.setBackgroundColor(item.getIconBackgroundColor());
             if (item.getIcon() != SideNavigationItem.DEFAULT_ICON_VALUE) {
                 holder.icon.setVisibility(View.VISIBLE);
-                holder.icon.setImageResource(menuItems.get(position).getIcon());
+                holder.icon.setImageResource(item.getIcon());
             } else {
-                holder.icon.setVisibility(View.GONE);
+                holder.icon.setImageDrawable(null);
             }
             return convertView;
         }

@@ -31,7 +31,7 @@
             android:background="@color/side_navigation_background"
             android:cacheColorHint="#00000000"
             android:divider="@color/side_navigation_list_divider_color"
-            android:dividerHeight="1dp" />
+            android:dividerHeight="0dp" />
     </LinearLayout>
 
 </RelativeLayout>
