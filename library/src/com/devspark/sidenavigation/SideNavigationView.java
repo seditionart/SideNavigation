@@ -116,6 +116,13 @@ public class SideNavigationView extends LinearLayout {
                         callback.onSideNavigationItemClick(item.getId());
                     }
                     hideMenu();
+            		if (item.getIcon() != SideNavigationItem.DEFAULT_ICON_VALUE) {
+            			//// close any open toggles
+            			for (SideNavigationItem i: menuItems) {
+            				i.setOpened(false);
+            			}
+                		((BaseAdapter)parent.getAdapter()).notifyDataSetChanged();
+            		}
             	}
             }
         });
