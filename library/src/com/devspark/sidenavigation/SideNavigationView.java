@@ -8,8 +8,12 @@ import android.content.Context;
 import android.content.res.XmlResourceParser;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.StateListDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.StateSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -407,7 +411,17 @@ public class SideNavigationView extends LinearLayout {
 
             SideNavigationItem item = (SideNavigationItem)getItem(position);
             holder.text.setText(item.getText().toUpperCase(getContext().getResources().getConfiguration().locale));
-            convertView.setBackgroundColor(item.getBackgroundColor());
+
+            StateListDrawable states = new StateListDrawable();
+    		ShapeDrawable shapeDrawable;
+			shapeDrawable = new ShapeDrawable(new RectShape());
+			shapeDrawable.getPaint().setColor(getResources().getColor(R.color.side_navigation_background));
+			states.addState(new int[] {android.R.attr.state_pressed}, shapeDrawable);
+			shapeDrawable = new ShapeDrawable(new RectShape());
+			shapeDrawable.getPaint().setColor(item.getBackgroundColor());
+			states.addState(StateSet.WILD_CARD, shapeDrawable);
+        	convertView.setBackgroundDrawable(states);
+            
             holder.icon.setBackgroundColor(item.getIconBackgroundColor());
             if (item.getIcon() != SideNavigationItem.DEFAULT_ICON_VALUE) {
                 holder.icon.setVisibility(View.VISIBLE);
