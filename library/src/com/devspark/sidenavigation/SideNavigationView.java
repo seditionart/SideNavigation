@@ -6,6 +6,7 @@ import org.xmlpull.v1.XmlPullParser;
 
 import android.content.Context;
 import android.content.res.XmlResourceParser;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ShapeDrawable;
@@ -152,6 +153,13 @@ public class SideNavigationView extends LinearLayout {
             listView.setAdapter(new SideNavigationAdapter());
         }
     }
+    
+    public void setMenuItem(int index, Bitmap icon, String text) {
+    	SideNavigationItem item = menuItems.get(index);
+    	item.setIconBitmap(icon);
+    	item.setText(text);
+		((BaseAdapter)listView.getAdapter()).notifyDataSetChanged();
+    }
 
     /**
      * Setup sliding mode of side menu ({@code Mode.LEFT} or {@code Mode.RIGHT}). {@code Mode.LEFT} by default.
@@ -278,6 +286,9 @@ public class SideNavigationView extends LinearLayout {
                         String resId = xrp.getAttributeValue(
                                 "http://schemas.android.com/apk/res/android",
                                 "id");
+                        String scaleType = xrp.getAttributeValue(
+                                "http://schemas.android.com/apk/res/android",
+                                "scaleType");
                         String backgroundColor = xrp.getAttributeValue(
                                 "http://www.seditionart.com/apk/res/android",
                                 "backgroundColor");
@@ -302,6 +313,9 @@ public class SideNavigationView extends LinearLayout {
                         }
                         if (iconBackgroundColor != null) {
                         	item.setIconBackgroundColor(Color.parseColor(iconBackgroundColor));
+                        }
+                        if (scaleType != null) {
+                        	item.setScaleType(ImageView.ScaleType.values()[Integer.valueOf(scaleType)]);
                         }
                         if (toggle != null) {
                         	item.setToggle(Boolean.valueOf(toggle).booleanValue());
@@ -404,13 +418,18 @@ public class SideNavigationView extends LinearLayout {
                 	holder.text.setTypeface(itemTypeface);
                 }
                 holder.icon = (ImageView) convertView.findViewById(R.id.side_navigation_item_icon);
+                holder.scaleType = holder.icon.getScaleType();
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
 
             SideNavigationItem item = (SideNavigationItem)getItem(position);
-            holder.text.setText(item.getText().toUpperCase(getContext().getResources().getConfiguration().locale));
+            String text = item.getText();
+            if (text != null) {
+            	text = text.toUpperCase(getContext().getResources().getConfiguration().locale);
+            }
+            holder.text.setText(text);
 
             StateListDrawable states = new StateListDrawable();
     		ShapeDrawable shapeDrawable;
@@ -425,9 +444,18 @@ public class SideNavigationView extends LinearLayout {
             holder.icon.setBackgroundColor(item.getIconBackgroundColor());
             if (item.getIcon() != SideNavigationItem.DEFAULT_ICON_VALUE) {
                 holder.icon.setVisibility(View.VISIBLE);
-                holder.icon.setImageResource(item.getIcon());
+                if (item.getIcon() == SideNavigationItem.BITMAP_ICON_VALUE) {
+                	holder.icon.setImageBitmap(item.getIconBitmap());
+                } else {
+                    holder.icon.setImageResource(item.getIcon());
+                }
             } else {
                 holder.icon.setImageDrawable(null);
+            }
+            if (item.getScaleType() != null) {
+            	holder.icon.setScaleType(item.getScaleType());
+            } else {
+            	holder.icon.setScaleType(holder.scaleType);
             }
             return convertView;
         }
@@ -435,6 +463,7 @@ public class SideNavigationView extends LinearLayout {
         class ViewHolder {
             TextView text;
             ImageView icon;
+            ImageView.ScaleType scaleType;
         }
 
     }

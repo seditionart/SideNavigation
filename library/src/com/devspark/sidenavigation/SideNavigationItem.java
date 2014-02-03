@@ -1,5 +1,8 @@
 package com.devspark.sidenavigation;
 
+import android.graphics.Bitmap;
+import android.widget.ImageView;
+
 /**
  * Item of side navigation.
  * 
@@ -9,10 +12,13 @@ package com.devspark.sidenavigation;
 class SideNavigationItem {
 
     public static int DEFAULT_ICON_VALUE = -1;
+    public static int BITMAP_ICON_VALUE = -2;
 
     private int id;
     private String text;
     private int icon = DEFAULT_ICON_VALUE;
+    private Bitmap iconBitmap;
+    private ImageView.ScaleType scaleType;
     private int backgroundColor;
     private int iconBackgroundColor;
     private boolean toggle;
@@ -40,6 +46,23 @@ class SideNavigationItem {
 
     public void setIcon(int icon) {
         this.icon = icon;
+    }
+    
+    public Bitmap getIconBitmap() {
+    	return iconBitmap;
+    }
+    
+    public void setIconBitmap(Bitmap bitmap) {
+    	this.icon = BITMAP_ICON_VALUE;
+    	this.iconBitmap = bitmap;
+    }
+    
+    public ImageView.ScaleType getScaleType() {
+    	return scaleType;
+    }
+    
+    public void setScaleType(ImageView.ScaleType scaleType) {
+    	this.scaleType = scaleType;
     }
     
     public void setBackgroundColor(int color) {
